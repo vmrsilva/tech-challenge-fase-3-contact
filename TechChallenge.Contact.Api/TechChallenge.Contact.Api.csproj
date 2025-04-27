@@ -4,10 +4,30 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>573d2f91-61ee-4b2e-9607-62d51c2441c4</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.4.1" />
+    <PackageReference Include="prometheus-net.SystemMetrics" Version="3.1.0" />
+    <PackageReference Include="Refit" Version="8.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TechChallenge.Contact.Integration\TechChallenge.Contact.Integration.csproj" />
+    <ProjectReference Include="..\TechChallenge.Domain\TechChallenge.Contact.Domain.csproj" />
+    <ProjectReference Include="..\TechChallenge.IoC\TechChallenge.Contact.IoC.csproj" />
   </ItemGroup>
 
 </Project>
