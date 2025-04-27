@@ -73,7 +73,6 @@ namespace TechChallenge.Tests.IntegrationTests.Setup
 
             services.AddDbContext<TechChallangeContext>(options =>
             {
-                options.UseSqlServer(_msSqlContainer.GetConnectionString());
 
                 var connectionString = _msSqlContainer.GetConnectionString();
 
