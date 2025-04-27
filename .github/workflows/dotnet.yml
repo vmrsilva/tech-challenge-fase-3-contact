@@ -1,0 +1,83 @@
+name: Git Actions Tech Challenge Fase 3- 🚀
+
+
+on:
+  push:
+    branches: [ "main" ]
+  #pull_request:
+   # branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  contactService:
+    name: Contact Service
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository - ⏬
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
+
+    - name: Set up.NET 8 - 🎛️
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore packages - ♻️
+      run: dotnet restore ./TechChallenge.Contact.sln
+
+    - name: Build Solution - 🏗️
+      run: dotnet build ./TechChallenge.Contact.sln --no-restore --configuration Release
+
+    #- name: Set up Docker
+     # run: |
+      #  docker info
+       # docker network ls
+
+
+    - name: Run Dot Net Tests - 🧪
+      run: dotnet test ./TechChallenge.Contact.sln --no-build --configuration Release --logger trx
+      env:
+        DOTNET_EnablePreviewFeatures: "true"
+        #TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
+        #TESTCONTAINERS_RYUK_DISABLED: "true"
+
+    - name: Save tests results - 💾
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestResults-contact-${{ github.run_id }}
+        path: "**/*.trx"
+
+  #build:
+   # needs: test
+    #name: Build docker image
+    #runs-on: ubuntu-latest
+
+    #steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v2
+    -
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    -
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    -
+      name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    -
+      name: Build image - 🐋
+      uses: docker/build-push-action@v2
+      with:
+        context: ./
+        file: ./TechChallenge.Contact.Api/Dockerfile
+        push: false
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/techchallange-contact:latest, ${{ secrets.DOCKERHUB_USERNAME }}/techchallange:${{ github.run_number }}
