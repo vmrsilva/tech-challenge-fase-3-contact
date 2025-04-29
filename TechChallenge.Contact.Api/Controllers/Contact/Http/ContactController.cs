@@ -60,16 +60,36 @@ namespace TechChallenge.Contact.Api.Controllers.Contact.Http
         [HttpGet("by-ddd/{ddd}")]
         public async Task<IActionResult> GetByDddAsync([FromRoute] string ddd)
         {
-            var contacts = await _contactService.GetByDddAsync(ddd).ConfigureAwait(false);
-
-            var response = _mapper.Map<IEnumerable<ContactResponseDto>>(contacts);
-
-            return StatusCode(200, new BaseResponseDto<IEnumerable<ContactResponseDto>>
+            try
             {
-                Success = true,
-                Error = string.Empty,
-                Data = response
-            });
+                var contacts = await _contactService.GetByDddAsync(ddd).ConfigureAwait(false);
+
+                var response = _mapper.Map<IEnumerable<ContactResponseDto>>(contacts);
+
+                return StatusCode(200, new BaseResponseDto<IEnumerable<ContactResponseDto>>
+                {
+                    Success = true,
+                    Error = string.Empty,
+                    Data = response
+                });
+            }
+            catch (RegionNotFoundException ex)
+            {
+                return StatusCode(400, new BaseResponse
+                {
+                    Error = ex.Message,
+                    Success = false
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(400, new BaseResponse
+                {
+                    Error = "Ocorreu um erro!",
+                    Success = false
+                });
+            }
+
         }
 
         [HttpGet("all")]

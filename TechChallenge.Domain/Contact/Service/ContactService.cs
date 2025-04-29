@@ -47,6 +47,9 @@ namespace TechChallenge.Domain.Contact.Service
             Func<Task<IntegrationBaseResponseDto<RegionGetDto>>> callApi = () => { return _regionIntegration.GetByDDD(ddd); };
             var regionResponse = await _integrationService.SendResilientRequest(callApi);
 
+            if (regionResponse == null)
+                throw new RegionNotFoundException();
+
             if (!regionResponse?.Success ?? false)
                 throw new RegionNotFoundException();
 

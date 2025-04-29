@@ -1,4 +1,6 @@
 ﻿using Polly;
+using Refit;
+using System.Net.Sockets;
 
 namespace TechChallenge.Contact.Integration.Service
 {
@@ -8,12 +10,16 @@ namespace TechChallenge.Contact.Integration.Service
         {
 
             var retryPolicy = Policy
-                .HandleInner<Exception>()
+                //.HandleInner<Exception>()
+                .HandleInner<HttpRequestException>(ex =>
+                ex.InnerException is SocketException socketEx &&
+                socketEx.SocketErrorCode == SocketError.ConnectionRefused)
+            .Or<ApiException>(e => e.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
                 .WaitAndRetryAsync(
                     retryCount: 3,
                     sleepDurationProvider: _ => TimeSpan.FromMilliseconds(3000)
                 );
-
+            
             var result = await retryPolicy.ExecuteAndCaptureAsync(call);
 
             if (result.Outcome == OutcomeType.Failure)
