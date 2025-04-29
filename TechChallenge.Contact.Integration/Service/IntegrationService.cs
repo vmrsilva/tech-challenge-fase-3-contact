@@ -1,6 +1,4 @@
 ﻿using Polly;
-using Refit;
-using System.Net;
 
 namespace TechChallenge.Contact.Integration.Service
 {
@@ -8,12 +6,12 @@ namespace TechChallenge.Contact.Integration.Service
     {
         public async Task<T?> SendResilientRequest<T>(Func<Task<T>> call)
         {
-      
+
             var retryPolicy = Policy
-                .HandleInner<ApiException>(ex => ex.StatusCode == HttpStatusCode.ServiceUnavailable)
+                .HandleInner<Exception>()
                 .WaitAndRetryAsync(
-                    retryCount: 50000,
-                    sleepDurationProvider: _ => TimeSpan.FromMilliseconds(2000)
+                    retryCount: 3,
+                    sleepDurationProvider: _ => TimeSpan.FromMilliseconds(3000)
                 );
 
             var result = await retryPolicy.ExecuteAndCaptureAsync(call);
