@@ -1,4 +1,7 @@
-﻿using TechChallenge.Contact.Integration.Service;
+﻿using Refit;
+using System.Net.Sockets;
+using System.Net;
+using TechChallenge.Contact.Integration.Service;
 
 namespace TechChallenge.Contact.Tests.Integration.Service
 {
@@ -23,39 +26,56 @@ namespace TechChallenge.Contact.Tests.Integration.Service
             Assert.Equal(expectedResult, result);
         }
 
-        [Fact(DisplayName = "SendResilientRequest When Call Fails With Http Request Exception Returns Default")]
-        public async Task SendResilientRequestWhenCallFailsWithHttpRequestExceptionReturnsDefault()
+        [Fact(DisplayName = "SendResilientRequest When Call Fails With Retryable HttpRequestException Returns Default")]
+        public async Task SendResilientRequestWhenCallFailsWithRetryableHttpRequestExceptionReturnsDefault()
         {
-            Func<Task<string>> call = () => throw new HttpRequestException("Simulated HTTP failure");
+            Func<Task<string>> call = () =>
+                throw new HttpRequestException("Simulated HTTP failure",
+                    new SocketException((int)SocketError.ConnectionRefused));
 
             var result = await _integrationService.SendResilientRequest(call);
 
             Assert.Null(result);
         }
 
-        public async Task SendResilientRequestWhenCallFailsWithNonHttpExceptionThrowsException()
+        [Fact(DisplayName = "SendResilientRequest When Call Fails With ApiException 503 Returns Default")]
+        public async Task SendResilientRequestWhenCallFailsWithApiException503ReturnsDefault()
         {
-            // Arrange
-            Func<Task<string>> call = () => throw new InvalidOperationException("Simulated non-HTTP failure");
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+            {
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://fake-url.com")
+            };
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _integrationService.SendResilientRequest(call));
+            var apiException = await ApiException.Create(
+                responseMessage.RequestMessage,
+                HttpMethod.Get,
+                responseMessage,
+                new RefitSettings()
+            );
+
+            Func<Task<string>> call = () => throw apiException;
+
+            var result = await _integrationService.SendResilientRequest(call);
+
+            Assert.Null(result);
         }
 
-        [Fact(DisplayName = "SendResilientRequest When Http Request Exception Occurs Retries Three Times")]
-        public async Task SendResilientRequestWhenHttpRequestExceptionOccursRetriesThreeTimes()
+
+        [Fact(DisplayName = "SendResilientRequest When Retryable Exception Occurs Retries Three Times")]
+        public async Task SendResilientRequestWhenRetryableExceptionOccursRetriesThreeTimes()
         {
             int retryCount = 0;
             Func<Task<string>> call = () =>
             {
                 retryCount++;
-                throw new HttpRequestException("Simulated HTTP failure for retry test");
+                throw new HttpRequestException("Simulated retryable HTTP failure",
+                    new SocketException((int)SocketError.ConnectionRefused));
             };
 
             var result = await _integrationService.SendResilientRequest(call);
 
             Assert.Null(result);
-            Assert.Equal(4, retryCount);
+            Assert.Equal(4, retryCount); // 1 tentativa + 3 retries
         }
 
         [Fact(DisplayName = "SendResilientRequest Succeeds After Retries")]
@@ -67,7 +87,8 @@ namespace TechChallenge.Contact.Tests.Integration.Service
                 retryCount++;
                 if (retryCount < 3)
                 {
-                    throw new HttpRequestException("Temporary HTTP failure");
+                    throw new HttpRequestException("Temporary HTTP failure",
+                        new SocketException((int)SocketError.ConnectionRefused));
                 }
                 return Task.FromResult("Recovered Success");
             };
@@ -76,7 +97,7 @@ namespace TechChallenge.Contact.Tests.Integration.Service
 
             Assert.NotNull(result);
             Assert.Equal("Recovered Success", result);
-            Assert.Equal(3, retryCount);
+            Assert.Equal(3, retryCount); // sucesso na terceira tentativa
         }
     }
 }
