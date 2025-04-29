@@ -16,14 +16,14 @@ Executar o comando:
 
 
 ### Executar testes: <br/>
-Acessar o diretório do projeto TechChallange.Contact.Test <br/>
+Acessar o diretório do projeto TechChallange.Contact.Tests <br/>
 Executar o comando:
 `dotnet test`
 
 ---------------------------------
 
 
-### Executar ambiente em localhost:<br/>
+### Executar a solução completa Microservicos + monitoramento em localhost:<br/>
 
-Clonar o repositório [docker-compose](https://github.com/vmrsilva/tech-challenge-fase3-dockercompose) com o arquivo docker-compose, configurações do Prometheus e Grafana e orientações para execução.
+Clonar o repositório [docker-compose](https://github.com/vmrsilva/tech-challenge-fase3-dockercompose) com o arquivo docker-compose, configurações do Prometheus e Grafana e seguir as orientações para execução.
 
