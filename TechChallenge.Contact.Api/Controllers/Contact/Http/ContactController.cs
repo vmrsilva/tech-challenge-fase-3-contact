@@ -46,6 +46,15 @@ namespace TechChallenge.Contact.Api.Controllers.Contact.Http
                     Error = ex.Message
                 });
             }
+            catch (HttpRequestException ex)
+            {
+
+                return StatusCode(400, new BaseResponse
+                {
+                    Error = ex.Message,
+                    Success = false
+                });
+            }
             catch (Exception ex)
             {
                 return StatusCode(400, new BaseResponse
@@ -76,6 +85,15 @@ namespace TechChallenge.Contact.Api.Controllers.Contact.Http
             catch (RegionNotFoundException ex)
             {
                 return StatusCode(400, new BaseResponse
+                {
+                    Error = ex.Message,
+                    Success = false
+                });
+            }
+            catch(HttpRequestException ex)
+            {
+
+               return StatusCode(400, new BaseResponse
                 {
                     Error = ex.Message,
                     Success = false
@@ -170,14 +188,23 @@ namespace TechChallenge.Contact.Api.Controllers.Contact.Http
                     Success = false
                 });
             }
-            //catch (RegionNotFoundException ex)
-            //{
-            //    return StatusCode(400, new BaseResponse
-            //    {
-            //        Error = ex.Message,
-            //        Success = false
-            //    });
-            //}
+            catch (RegionNotFoundException ex)
+            {
+                return StatusCode(400, new BaseResponse
+                {
+                    Error = ex.Message,
+                    Success = false
+                });
+            }
+            catch (HttpRequestException ex)
+            {
+
+                return StatusCode(400, new BaseResponse
+                {
+                    Error = ex.Message,
+                    Success = false
+                });
+            }
             catch (Exception)
             {
                 return StatusCode(400, new BaseResponse
