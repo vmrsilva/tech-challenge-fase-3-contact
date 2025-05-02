@@ -26,20 +26,21 @@ namespace TechChallenge.Contact.Tests.Integration.Service
             Assert.Equal(expectedResult, result);
         }
 
-        [Fact(DisplayName = "SendResilientRequest When Call Fails With Retryable HttpRequestException Returns Default")]
-        public async Task SendResilientRequestWhenCallFailsWithRetryableHttpRequestExceptionReturnsDefault()
+        [Fact(DisplayName = "SendResilientRequest When Call Fails With Retryable HttpRequestException Then Throws Generic HttpRequestException")]
+        public async Task SendResilientRequestWhenCallFailsWithRetryableHttpRequestExceptionThenThrowsGenericHttpRequestException()
         {
             Func<Task<string>> call = () =>
                 throw new HttpRequestException("Simulated HTTP failure",
                     new SocketException((int)SocketError.ConnectionRefused));
 
-            var result = await _integrationService.SendResilientRequest(call);
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _integrationService.SendResilientRequest(call));
 
-            Assert.Null(result);
+            Assert.Equal("Um serviço externo está indisponível no momento.", exception.Message);
         }
 
-        [Fact(DisplayName = "SendResilientRequest When Call Fails With ApiException 503 Returns Default")]
-        public async Task SendResilientRequestWhenCallFailsWithApiException503ReturnsDefault()
+        [Fact(DisplayName = "SendResilientRequest When Call Fails With ApiException 503 Throws HttpRequestException")]
+        public async Task SendResilientRequestWhenCallFailsWithApiException503ThrowsHttpRequestException()
         {
             var responseMessage = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
             {
@@ -55,14 +56,14 @@ namespace TechChallenge.Contact.Tests.Integration.Service
 
             Func<Task<string>> call = () => throw apiException;
 
-            var result = await _integrationService.SendResilientRequest(call);
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _integrationService.SendResilientRequest(call));
 
-            Assert.Null(result);
+            Assert.Equal("Um serviço externo está indisponível no momento.", exception.Message);
         }
 
-
-        [Fact(DisplayName = "SendResilientRequest When Retryable Exception Occurs Retries Three Times")]
-        public async Task SendResilientRequestWhenRetryableExceptionOccursRetriesThreeTimes()
+        [Fact(DisplayName = "SendResilientRequest When Retryable Exception Occurs Retries Three Times Then Throws")]
+        public async Task SendResilientRequestWhenRetryableExceptionOccursRetriesThreeTimesThenThrows()
         {
             int retryCount = 0;
             Func<Task<string>> call = () =>
@@ -72,10 +73,11 @@ namespace TechChallenge.Contact.Tests.Integration.Service
                     new SocketException((int)SocketError.ConnectionRefused));
             };
 
-            var result = await _integrationService.SendResilientRequest(call);
+            var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+                _integrationService.SendResilientRequest(call));
 
-            Assert.Null(result);
-            Assert.Equal(4, retryCount); // 1 tentativa + 3 retries
+            Assert.Equal("Um serviço externo está indisponível no momento.", exception.Message);
+            Assert.Equal(4, retryCount);
         }
 
         [Fact(DisplayName = "SendResilientRequest Succeeds After Retries")]
@@ -95,9 +97,31 @@ namespace TechChallenge.Contact.Tests.Integration.Service
 
             var result = await _integrationService.SendResilientRequest(call);
 
-            Assert.NotNull(result);
             Assert.Equal("Recovered Success", result);
-            Assert.Equal(3, retryCount); // sucesso na terceira tentativa
+            Assert.Equal(3, retryCount);
         }
+
+        [Fact(DisplayName = "SendResilientRequest When ApiException With 400 Returns Default")]
+        public async Task SendResilientRequestWhenApiExceptionWith400ReturnsDefault()
+        {
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.BadRequest)
+            {
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://fake-url.com")
+            };
+
+            var apiException = await ApiException.Create(
+                responseMessage.RequestMessage,
+                HttpMethod.Get,
+                responseMessage,
+                new RefitSettings()
+            );
+
+            Func<Task<string>> call = () => throw apiException;
+
+            var result = await _integrationService.SendResilientRequest(call);
+
+            Assert.Null(result);
+        }
+
     }
 }
