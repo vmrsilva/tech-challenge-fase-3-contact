@@ -19,7 +19,6 @@ namespace TechChallenge.IoC
         {
             ConfigureContext(services, configuration);
             ConfigureBase(services);
-            //ConfigureRegion(services);
             ConfigureContact(services);
             ConfigureCache(services, configuration);
             ConfigureIntegration(services);

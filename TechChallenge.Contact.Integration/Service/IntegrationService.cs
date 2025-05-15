@@ -2,7 +2,6 @@
 using Refit;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.Metadata.Ecma335;
 
 namespace TechChallenge.Contact.Integration.Service
 {
@@ -12,16 +11,14 @@ namespace TechChallenge.Contact.Integration.Service
         {
 
             var retryPolicy = Policy
-                //.HandleInner<Exception>()
                 .HandleInner<HttpRequestException>(ex =>
                 ex.InnerException is SocketException socketEx &&
                   (
                 socketEx.SocketErrorCode == SocketError.ConnectionRefused ||
-                socketEx.SocketErrorCode == SocketError.HostNotFound //||
-               // socketEx.SocketErrorCode == SocketError.TryAgain              
+                socketEx.SocketErrorCode == SocketError.HostNotFound        
             )
         )
-            //.Or<ApiException>(e => e.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+
                 .WaitAndRetryAsync(
                     retryCount: 3,
                     sleepDurationProvider: _ => TimeSpan.FromMilliseconds(4000)
