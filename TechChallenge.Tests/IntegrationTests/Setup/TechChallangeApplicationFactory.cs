@@ -78,7 +78,7 @@ namespace TechChallenge.Tests.IntegrationTests.Setup
 
                 options.UseSqlServer(connectionString, sqlOptions =>
                 {
-                    sqlOptions.EnableRetryOnFailure(); // Habilita retry automático
+                    sqlOptions.EnableRetryOnFailure();
                 });
 
             });
